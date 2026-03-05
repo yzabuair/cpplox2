@@ -13,6 +13,8 @@ add_executable(
         source/debug.cpp
         source/main.cpp
         source/value.h
+        source/vm.cpp
+        source/vm.h
 )
 
 target_compile_features(
