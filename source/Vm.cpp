@@ -1,6 +1,6 @@
-#include "vm.h"
+#include "Vm.h"
 
-#include "debug.h"
+#include "Debug.h"
 
 #include <iostream>
 

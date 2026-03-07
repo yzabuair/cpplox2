@@ -1,6 +1,6 @@
 // Copyright 2026, Yasser Zabuair.  See LICENSE for details.
 #pragma once
-#include "chunk.h"
+#include "Chunk.h"
 
 #include <string>
 
