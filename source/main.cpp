@@ -86,11 +86,6 @@ std::string read_file(const std::string& file) {
 cpplox2::InterpretResult interpret(const std::string& script) {
     cpplox2::Scanner scanner(script);
     
-    auto token = scanner.scan_token();
-    while (token.type != cpplox2::TokenType::ENDOFFILE) {
-        std::cout << token << "\n";
-        token = scanner.scan_token();
-    }
     return cpplox2::InterpretResult::INTERPRET_OK;
 }
 

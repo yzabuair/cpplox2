@@ -31,6 +31,10 @@ public:
                      line{line} {
     }
     
+    Token() {
+        
+    }
+    
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Token& token) {
