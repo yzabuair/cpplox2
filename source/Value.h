@@ -13,6 +13,10 @@ struct Values {
         constants.push_back(val);
         return constants.size()-1;
     }
+    
+    void clear() {
+        constants.clear();
+    }
 };
 
 } // namespace cpplox2

@@ -33,6 +33,12 @@ struct Chunk {
         lines.push_back(line);
         return *this;
     }
+    
+    void clear() {
+        data.clear();
+        lines.clear();
+        constants.clear();
+    }
 };
 
 } // namespace cpplox2

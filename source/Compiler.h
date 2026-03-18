@@ -3,14 +3,19 @@
 #include "Scanner.h"
 
 
+#include <exception>
 #include <functional>
 #include <map>
+#include <source_location>
+#include <sstream>
 #include <string>
 
 namespace cpplox2 {
-    
+
+/// Compiles the code into our virtual machine format.
 class Compiler {
     Scanner scanner_;
+    std::string file_name_;
     Token prev_;
     Token curr_;
     Chunk curr_chunk_;
@@ -32,7 +37,7 @@ class Compiler {
     struct ParseRule {
         std::function<void ()>  prefix;
         std::function<void ()>  infix;
-        Precedence precendence;
+        Precedence precedence;
     };
     
     const std::map<TokenType, ParseRule> rules_ = {
@@ -78,7 +83,8 @@ class Compiler {
     };
     
 public:
-    Compiler(const std::string& script);
+    Compiler(const std::string& script,
+             const std::string& file_name = "<stdin>");
     ~Compiler() = default;
     
     Chunk compile();

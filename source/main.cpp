@@ -1,5 +1,6 @@
 #include "Chunk.h"
 #include "Common.h"
+#include "Compiler.h"
 #include "Debug.h"
 #include "Scanner.h"
 #include "Vm.h"
@@ -83,8 +84,13 @@ std::string read_file(const std::string& file) {
 }
 
 
-cpplox2::InterpretResult interpret(const std::string& script) {
-    cpplox2::Scanner scanner(script);
+cpplox2::InterpretResult interpret(const std::string& script,
+                                   const std::string& file_name = "<stdin>") {
+    cpplox2::Compiler compiler{script,
+                               file_name};
+    
+    auto chunk = compiler.compile();
+    cpplox2::disassemble_chunk(chunk, file_name);
     
     return cpplox2::InterpretResult::INTERPRET_OK;
 }
@@ -92,7 +98,8 @@ cpplox2::InterpretResult interpret(const std::string& script) {
 int run_file(const std::string& file) {
     auto script = read_file(file);
     
-    auto result = interpret(script);
+    auto result = interpret(script,
+                            file);
     
     return 0;
 }

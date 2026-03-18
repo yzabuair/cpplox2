@@ -43,20 +43,16 @@ int disassemble_instruction(const Chunk& chunk, int offset) {
             return simple_instruction_("OP_RETURN", offset);
 
         case static_cast<uint8_t>(OpCode::OP_ADD):
-            simple_instruction_("OP_ADD", offset);
-            break;
+            return simple_instruction_("OP_ADD", offset);
             
         case static_cast<uint8_t>(OpCode::OP_SUBTRACT):
-            simple_instruction_("OP_SUBTRACT", offset);
-            break;
+            return simple_instruction_("OP_SUBTRACT", offset);
             
         case static_cast<uint8_t>(OpCode::OP_MULTIPLY):
-            simple_instruction_("OP_MULTIPLY", offset);
-            break;
+            return simple_instruction_("OP_MULTIPLY", offset);
             
         case static_cast<uint8_t>(OpCode::OP_DIVIDE):
-            simple_instruction_("OP_DIVIDE", offset);
-            break;
+            return simple_instruction_("OP_DIVIDE", offset);
             
         case static_cast<int>(OpCode::OP_NEGATE):
             return simple_instruction_("OP_NEGATE", offset);

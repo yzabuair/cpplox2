@@ -6,6 +6,10 @@
 
 namespace cpplox2 {
 
+struct RuntimeError {
+    
+};
+
 enum class InterpretResult {
     INTERPRET_OK,
     INTERPRET_COMPILE_ERROR,

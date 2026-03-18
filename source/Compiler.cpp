@@ -1,15 +1,25 @@
 // Copyright 2026 Yasser Zabuair.  See LICENSE for details.
 #include "Compiler.h"
 
+#include "ParseError.h"
+
 namespace cpplox2 {
 
-Compiler::Compiler(const std::string& script):
-    scanner_{script} {
+Compiler::Compiler(const std::string& script,
+                   const std::string& file_name):
+    scanner_{script},
+    file_name_{file_name} {
     
 }
 
 Chunk Compiler::compile() {
+    curr_chunk_.clear();
     
+    advance_();
+    expression_();
+    consume_(TokenType::SEMICOLON, "Expected semi-colon");
+    
+    return curr_chunk_;
 }
 
 // Internal Helpers
@@ -37,7 +47,27 @@ void Compiler::unary_() {
 }
 
 void Compiler::parse_precendence_(Precedence precendence) {
+    advance_();
     
+    const auto& rule = get_rule_(prev_.type);
+    if (!rule.prefix) {
+        throw ParseError("Expected a prefix rule.",
+                         file_name_,
+                         scanner_.line());
+    }
+    
+    rule.prefix();
+    
+    while(precendence <= get_rule_(curr_.type).precedence) {
+        advance_();
+        const auto& rule2 = get_rule_(prev_.type);
+        if (!rule2.infix) {
+            throw ParseError("Expected an infix rule.",
+                             file_name_,
+                             scanner_.line());
+        }
+        rule2.infix();
+    }
 }
 
 void Compiler::grouping_() {
@@ -48,14 +78,38 @@ void Compiler::grouping_() {
 void Compiler::binary_() {
     TokenType operator_type = prev_.type;
     
-    // ParseRule& rule = get_rule_(operator_type);
+    const ParseRule& rule = get_rule_(operator_type);
+    parse_precendence_(static_cast<Precedence>(rule.precedence + 1));  // right associative.
+    
+    switch(operator_type) {
+        case TokenType::PLUS:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_ADD));
+            break;
+        case TokenType::MINUS:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_SUBTRACT));
+            break;
+        case TokenType::STAR:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_MULTIPLY));
+            break;
+        case TokenType::SLASH:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_DIVIDE));
+            break;
+        default:
+        return; // Unreachable.
+    }
+    
+    
     
 }
 
 const Compiler::ParseRule& Compiler::get_rule_(TokenType token_type) {
     auto itr = rules_.find(token_type);
     if (itr == std::end(rules_)) {
-        // TODO: Error..
+        std::stringstream stream;
+        stream << "Could not find rule for token: " << token_type;
+        throw ParseError(stream.str(),
+                         file_name_,
+                         scanner_.line());
     }
     
     return itr->second;
@@ -81,7 +135,9 @@ void Compiler::consume_(TokenType type, const std::string& message) {
         return;
     }
     
-    // TODO: Throw an error of some sort.
+    throw ParseError(message,
+                     file_name_,
+                     scanner_.line());
 }
 
 void Compiler::emit_byte_(uint8_t byte) {

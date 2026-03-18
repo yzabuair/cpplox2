@@ -47,6 +47,10 @@ public:
         
     }
     
+    int line() {
+        return line_;
+    }
+    
     std::vector<Token> scan_tokens();
     Token scan_token();
     
