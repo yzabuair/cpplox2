@@ -6,10 +6,6 @@
 
 namespace cpplox2 {
 
-struct RuntimeError {
-    
-};
-
 enum class InterpretResult {
     INTERPRET_OK,
     INTERPRET_COMPILE_ERROR,
@@ -22,7 +18,6 @@ class Vm {
     int ip_{0};
     std::deque<Value> stack_;
 
-    
 public:
     Vm(const Chunk& chunk,
        bool debug):
@@ -31,10 +26,13 @@ public:
     }
     
     InterpretResult run();
+    Value result();
     
 // Internal Helpers
 private:
     void binary_op_(OpCode which_op);
+    bool is_falsey_(const Value& value);
+    bool values_equal_(const Value& value1, const Value& value2);
     
     
 };

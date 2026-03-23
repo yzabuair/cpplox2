@@ -29,7 +29,7 @@ void Compiler::expression_() {
 }
 
 void Compiler::number_() {
-    emit_constant_(std::get<2>(prev_.literal));
+    emit_constant_(std::get<double>(prev_.literal));
 }
 
 void Compiler::unary_() {
@@ -38,6 +38,9 @@ void Compiler::unary_() {
     parse_precendence_(Precedence::PREC_UNARY);
     
     switch (opType) {
+        case TokenType::BANG:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_NOT));
+            break;
         case TokenType::MINUS:
             emit_byte_(static_cast<uint8_t>(OpCode::OP_SUBTRACT));
             break;
@@ -82,24 +85,71 @@ void Compiler::binary_() {
     parse_precendence_(static_cast<Precedence>(rule.precedence + 1));  // right associative.
     
     switch(operator_type) {
+        case TokenType::BANG_EQUAL:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_EQUAL));
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_NOT));
+            break;
+            
+        case TokenType::EQUAL_EQUAL:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_EQUAL));
+            break
+            ;
+        case TokenType::GREATER:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_GREATER));
+            break
+            ;
+        case TokenType::GREATER_EQUAL:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_LESS));
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_NOT));
+            break;
+            
+        case TokenType::LESS:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_LESS));
+            break;
+            
+        case TokenType::LESS_EQUAL:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_GREATER));
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_NOT));
+            break;
+            
         case TokenType::PLUS:
             emit_byte_(static_cast<uint8_t>(OpCode::OP_ADD));
             break;
+            
         case TokenType::MINUS:
             emit_byte_(static_cast<uint8_t>(OpCode::OP_SUBTRACT));
             break;
+            
         case TokenType::STAR:
             emit_byte_(static_cast<uint8_t>(OpCode::OP_MULTIPLY));
             break;
+            
         case TokenType::SLASH:
             emit_byte_(static_cast<uint8_t>(OpCode::OP_DIVIDE));
             break;
+            
         default:
+            throw ParseError("Unknown token",
+                             file_name_,
+                             scanner_.line());
         return; // Unreachable.
     }
-    
-    
-    
+}
+
+void Compiler::literal_() {
+    switch (prev_.type) {
+        case TokenType::FALSE:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_FALSE));
+            break;
+        case TokenType::TRUE:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_TRUE));
+            break;
+        case TokenType::NIL:
+            emit_byte_(static_cast<uint8_t>(OpCode::OP_NIL));
+            break;
+        default:
+            return;
+    }
 }
 
 const Compiler::ParseRule& Compiler::get_rule_(TokenType token_type) {

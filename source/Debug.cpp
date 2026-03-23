@@ -1,3 +1,4 @@
+// Copyright 2026, Yasser Zabuair.  See LICENSE for details.
 #include "Debug.h"
 
 #include <iostream>
@@ -15,7 +16,7 @@ int simple_instruction_(const std::string& name, int offset) {
 int const_instruction_(const std::string& name, const Chunk& chunk, int offset) {
     uint8_t constant_id = chunk.data[offset + 1];
     std::cout << std::setfill(' ') << std::setw(16) << std::left << name;
-    std::cout << std::setw(4) << std::to_string(constant_id) << chunk.constants.constants[constant_id] << "\n";
+    std::cout << std::setw(4) << std::to_string(constant_id) << std::get<double>(chunk.constants.constants[constant_id]) << "\n";
     return offset + 2;
 }
 
@@ -59,9 +60,30 @@ int disassemble_instruction(const Chunk& chunk, int offset) {
             
         case static_cast<int>(OpCode::OP_CONSTANT):
             return const_instruction_("OP_CONSTANT", chunk, offset);
+            
+        case static_cast<int>(OpCode::OP_NIL):
+            return simple_instruction_("OP_NIL", offset);
+            
+        case static_cast<int>(OpCode::OP_TRUE):
+            return simple_instruction_("OP_TRUE", offset);
+            
+        case static_cast<int>(OpCode::OP_FALSE):
+            return simple_instruction_("OP_FALSE", offset);
+        
+        case static_cast<int>(OpCode::OP_NOT):
+            return simple_instruction_("OP_NOT", offset);
+            
+        case static_cast<int>(OpCode::OP_GREATER):
+            return simple_instruction_("OP_GREATER", offset);
+            
+        case static_cast<int>(OpCode::OP_LESS):
+            return simple_instruction_("OP_LESS", offset);
+            
+        case static_cast<int>(OpCode::OP_EQUAL):
+            return simple_instruction_("OP_EQUAL", offset);
 
         default:
-            std::cout << "Unkown code: " << instruction << "\n";
+            std::cout << "Unkown code: " << static_cast<int>(instruction) << "\n";
             return offset + 1;
     }
 }

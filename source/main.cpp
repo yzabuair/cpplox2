@@ -1,8 +1,10 @@
+// Copyright 2026, Yasser Zabuair.  See LICENSE for details.
 #include "Chunk.h"
 #include "Common.h"
 #include "Compiler.h"
 #include "Debug.h"
 #include "Scanner.h"
+#include "Value.h"
 #include "Vm.h"
 
 #include <exception>
@@ -90,9 +92,15 @@ cpplox2::InterpretResult interpret(const std::string& script,
                                file_name};
     
     auto chunk = compiler.compile();
-    cpplox2::disassemble_chunk(chunk, file_name);
     
-    return cpplox2::InterpretResult::INTERPRET_OK;
+    cpplox2::Vm vm{chunk, true};
+    
+    auto result =  vm.run();
+    if (result == cpplox2::InterpretResult::INTERPRET_OK) {
+        using cpplox2::operator<<;
+        std::cout << "result = " << vm.result() << "\n";
+    }
+    return result;
 }
 
 int run_file(const std::string& file) {

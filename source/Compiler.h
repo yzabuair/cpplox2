@@ -1,3 +1,4 @@
+// Copyright 2026, Yasser Zabuair.  See LICENSE for details.
 #pragma once
 #include "Chunk.h"
 #include "Scanner.h"
@@ -52,31 +53,31 @@ class Compiler {
         {TokenType::SEMICOLON,      {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::SLASH,          {nullptr, [this](){ binary_(); }, Precedence::PREC_FACTOR}},
         {TokenType::STAR,           {nullptr, [this](){ binary_(); }, Precedence::PREC_FACTOR}},
-        {TokenType::BANG,           {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::BANG_EQUAL,     {nullptr, nullptr, Precedence::PREC_NONE}},
+        {TokenType::BANG,           {[this]() { this->unary_(); }, nullptr, Precedence::PREC_NONE}},
+        {TokenType::BANG_EQUAL,     {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
         {TokenType::EQUAL,          {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::EQUAL_EQUAL,    {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::GREATER,        {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::GREATER_EQUAL,  {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::LESS,           {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::LESS_EQUAL,     {nullptr, nullptr, Precedence::PREC_NONE}},
+        {TokenType::EQUAL_EQUAL,    {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
+        {TokenType::GREATER,        {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
+        {TokenType::GREATER_EQUAL,  {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
+        {TokenType::LESS,           {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
+        {TokenType::LESS_EQUAL,     {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
         {TokenType::IDENTIFIER,     {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::STRING,         {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::NUMBER,         {[this](){ number_(); }, nullptr, Precedence::PREC_NONE}},
         {TokenType::AND,            {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::CLASS,          {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::ELSE,           {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::FALSE,          {nullptr, nullptr, Precedence::PREC_NONE}},
+        {TokenType::FALSE,          {[this](){ this->literal_(); }, nullptr, Precedence::PREC_NONE}},
         {TokenType::FOR,            {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::FUN,            {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::IF,             {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::NIL,            {nullptr, nullptr, Precedence::PREC_NONE}},
+        {TokenType::NIL,            {[this](){ this->literal_(); }, nullptr, Precedence::PREC_NONE}},
         {TokenType::OR,             {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::PRINT,          {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::RETURN,         {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::SUPER,          {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::THIS,           {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::TRUE,           {nullptr, nullptr, Precedence::PREC_NONE}},
+        {TokenType::TRUE,           {[this](){ this->literal_(); }, nullptr, Precedence::PREC_NONE}},
         {TokenType::VAR,            {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::WHILE,          {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::ENDOFFILE,      {nullptr, nullptr, Precedence::PREC_NONE}},
@@ -97,6 +98,7 @@ private:
     void parse_precendence_(Precedence precendence);
     void grouping_();
     void binary_();
+    void literal_();
     const ParseRule& get_rule_(TokenType token_type);
     void emit_constant_(Value value);
     void advance_();

@@ -18,6 +18,7 @@ add_executable(
         source/Debug.cpp
         source/main.cpp 
         source/ParseError.h
+        source/RuntimeError.h
         source/Scanner.cpp
         source/Scanner.h
         source/ScannerError.h
