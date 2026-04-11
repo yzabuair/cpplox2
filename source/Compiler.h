@@ -62,7 +62,7 @@ class Compiler {
         {TokenType::LESS,           {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
         {TokenType::LESS_EQUAL,     {nullptr, [this](){ this->binary_(); }, Precedence::PREC_EQUALITY}},
         {TokenType::IDENTIFIER,     {nullptr, nullptr, Precedence::PREC_NONE}},
-        {TokenType::STRING,         {nullptr, nullptr, Precedence::PREC_NONE}},
+        {TokenType::STRING,         {[this](){ string_(); }, nullptr, Precedence::PREC_NONE}},
         {TokenType::NUMBER,         {[this](){ number_(); }, nullptr, Precedence::PREC_NONE}},
         {TokenType::AND,            {nullptr, nullptr, Precedence::PREC_NONE}},
         {TokenType::CLASS,          {nullptr, nullptr, Precedence::PREC_NONE}},
@@ -99,6 +99,7 @@ private:
     void grouping_();
     void binary_();
     void literal_();
+    void string_();
     const ParseRule& get_rule_(TokenType token_type);
     void emit_constant_(Value value);
     void advance_();

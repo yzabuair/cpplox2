@@ -8,6 +8,7 @@
 
 namespace cpplox2 {
 
+/// This are the value types we understand in the VM.
 using Value = std::variant<std::monostate, bool, double, std::string>;
 
 struct Values {
@@ -23,6 +24,25 @@ struct Values {
     }
 };
 
+/// Checks if values are equal to each other.
+inline bool values_equal(const Value& value1, const Value& value2) {
+    // Damnit, different types.
+    if (value1.index() != value2.index()) {
+        return false;
+    }
+    
+    switch (value1.index()) {
+        case 0: return true;
+        case 1: return std::get<bool>(value1) == std::get<bool>(value2);
+        case 2: return std::get<double>(value1) == std::get<double>(value2);
+        case 3: return std::get<std::string>(value1) == std::get<std::string>(value2);
+        default:
+            return false;
+    }
+    return false;
+}
+
+/// Dumps out data to an output stream.
 inline std::ostream& operator<<(std::ostream& stream, const Value& value) {
     switch (value.index()) {
         case 0:

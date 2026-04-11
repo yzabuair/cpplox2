@@ -12,6 +12,7 @@ enum class InterpretResult {
     INTERPRET_RUNTIME_ERROR
 };
 
+/// The Virtual Machine that executes the instructions in a chunk.  This is stack-based.
 class Vm {
     Chunk curr_chunk_;
     bool debug_{false};

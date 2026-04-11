@@ -152,6 +152,10 @@ void Compiler::literal_() {
     }
 }
 
+void Compiler::string_() {
+    emit_constant_(std::get<std::string>(prev_.literal));
+}
+
 const Compiler::ParseRule& Compiler::get_rule_(TokenType token_type) {
     auto itr = rules_.find(token_type);
     if (itr == std::end(rules_)) {
@@ -168,7 +172,9 @@ const Compiler::ParseRule& Compiler::get_rule_(TokenType token_type) {
 void Compiler::emit_constant_(Value value) {
     int const_index = curr_chunk_.constants.add_value(value);
     if (const_index >= UINT8_MAX) {
-        // TODO Error..
+        throw ParseError("Bro, you exceeded the number of constants allowed in a chunk.",
+                         file_name_,
+                         scanner_.line());
     }
     emit_byte_(static_cast<uint8_t>(OpCode::OP_CONSTANT));
     emit_byte_(const_index);
