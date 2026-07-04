@@ -16,7 +16,7 @@ int simple_instruction_(const std::string& name, int offset) {
 int const_instruction_(const std::string& name, const Chunk& chunk, int offset) {
     uint8_t constant_id = chunk.data[offset + 1];
     std::cout << std::setfill(' ') << std::setw(16) << std::left << name;
-    std::cout << std::setw(4) << std::to_string(constant_id) << std::get<double>(chunk.constants.constants[constant_id]) << "\n";
+    std::cout << std::setw(4) << std::to_string(constant_id) << chunk.constants.constants[constant_id] << "\n";
     return offset + 2;
 }
 
@@ -81,6 +81,21 @@ int disassemble_instruction(const Chunk& chunk, int offset) {
             
         case static_cast<int>(OpCode::OP_EQUAL):
             return simple_instruction_("OP_EQUAL", offset);
+            
+        case static_cast<int>(OpCode::OP_DEFINE_GLOBAL):
+            return const_instruction_("OP_DEFINE_GLOBAL", chunk, offset);
+            
+        case static_cast<int>(OpCode::OP_GET_GLOBAL):
+            return const_instruction_("OP_GET_GLOBAL", chunk, offset);
+            
+        case static_cast<int>(OpCode::OP_SET_GLOBAL):
+            return const_instruction_("OP_SET_GLOBAL", chunk, offset);
+            
+        case static_cast<int>(OpCode::OP_POP):
+            return simple_instruction_("OP_POP", offset);
+        
+        case static_cast<int>(OpCode::OP_PRINT):
+            return simple_instruction_("OP_PRINT", offset);
 
         default:
             std::cout << "Unkown code: " << static_cast<int>(instruction) << "\n";

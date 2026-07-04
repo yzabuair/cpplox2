@@ -1,6 +1,7 @@
 // Copyright 2026, Yasser Zabuair.  See LICENSE for details.
 #pragma once
 #include "Chunk.h"
+#include "Table.h"
 
 #include <deque>
 
@@ -18,6 +19,7 @@ class Vm {
     bool debug_{false};
     int ip_{0};
     std::deque<Value> stack_;
+    SymbolTable globals_;
 
 public:
     Vm(const Chunk& chunk,

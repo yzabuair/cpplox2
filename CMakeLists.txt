@@ -17,11 +17,15 @@ add_executable(
         source/Debug.h
         source/Debug.cpp
         source/main.cpp 
+        source/Object.cpp
+        source/Object.h
         source/ParseError.h
         source/RuntimeError.h
         source/Scanner.cpp
         source/Scanner.h
         source/ScannerError.h
+        source/Table.cpp
+        source/Table.h
         source/Token.h
         source/TokenType.h
         source/Value.h

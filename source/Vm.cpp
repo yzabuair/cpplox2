@@ -21,6 +21,7 @@ InterpretResult Vm::run() {
             // We are done, son.
             break;
         }
+        
         uint8_t curr_ins = curr_chunk_.data[curr_ip];
         if (debug_) {
             std::cout << "stack = [";
@@ -31,10 +32,13 @@ InterpretResult Vm::run() {
             disassemble_instruction(curr_chunk_, curr_ip);
         }
         switch(curr_ins) {
-            case static_cast<uint8_t>(OpCode::OP_RETURN):
-                std::cout << std::get<double>(stack_.front()) << "\n";
-                stack_.pop_front();
-                return InterpretResult::INTERPRET_OK;
+            case static_cast<uint8_t>(OpCode::OP_PRINT):
+                {
+                    auto value = stack_.front();
+                    stack_.pop_front();
+                    std::cout << value << "\n";
+                }
+                break;
                 
             case static_cast<uint8_t>(OpCode::OP_ADD):
                 binary_op_(OpCode::OP_ADD);
@@ -89,6 +93,63 @@ InterpretResult Vm::run() {
             case static_cast<uint8_t>(OpCode::OP_FALSE):
                 stack_.push_front(false);
                 break;
+                
+            case static_cast<uint8_t>(OpCode::OP_POP):
+                stack_.pop_front();
+                break;
+                
+            case static_cast<uint8_t>(OpCode::OP_DEFINE_GLOBAL):
+                {
+                    // Get the index of the variable and its name.
+                    uint8_t const_index = curr_chunk_.data[ip_++];
+                    std::string var_name = std::get<std::string>(curr_chunk_.constants.get_value(const_index));
+                    
+                    // Get the initial value that's on the stack.
+                    Value init_value = stack_.front();
+                    
+                    globals_.set_symbol(var_name, init_value);
+                    
+                    stack_.pop_front();
+                }
+                break;
+                
+            case static_cast<uint8_t>(OpCode::OP_GET_GLOBAL):
+                {
+                    // Get the index of the variable and its name.
+                    uint8_t const_index = curr_chunk_.data[ip_++];
+                    std::string var_name = std::get<std::string>(curr_chunk_.constants.get_value(const_index));
+                    
+                    Value value;
+                    bool result = globals_.get_symbol(var_name, value);
+                    if (!result) {
+                        std::stringstream stream;
+                        stream << "Undefined global variable: " << var_name;
+                        throw RuntimeError(stream.str());
+                    }
+                    stack_.push_front(value);
+                    
+                }
+                break;
+                
+            case static_cast<uint8_t>(OpCode::OP_SET_GLOBAL):
+                {
+                    // Get the index of the variable and its name.
+                    uint8_t index = curr_chunk_.data[ip_++];
+                    std::string var_name = std::get<std::string>(curr_chunk_.constants.get_value(index));
+                    
+                    // The value we want to set should be on the stack.
+                    Value value = stack_.front();
+                    
+                    bool exists = globals_.set_symbol(var_name, value);
+                    if (!exists) {
+                        globals_.remove_symbol(var_name);
+                        
+                        std::stringstream stream;
+                        stream << "Undefined global variable: " << var_name;
+                        throw RuntimeError(stream.str());
+                    }
+                }
+                break;
             
             case static_cast<uint8_t>(OpCode::OP_EQUAL):
                 {
@@ -127,26 +188,44 @@ Value Vm::result() {
 // Internal Helpers
 
 void Vm::binary_op_(OpCode which_op) {
-    auto b = std::get<double>(stack_.front());
+    auto b = stack_.front();
     stack_.pop_front();
-    auto a = std::get<double>(stack_.front());
+    auto a = stack_.front();
     stack_.pop_front();
     
     switch (which_op) {
         case OpCode::OP_ADD:
-            stack_.push_front(a + b);
+            if (a.index() == 2 && b.index() == 2) {
+                stack_.push_front(Value(std::get<double>(a) + std::get<double>(b)));
+            } else if (a.index() == 3 && b.index() == 3) {
+                stack_.push_front(Value(std::get<std::string>(a) + std::get<std::string>(b)));
+            } else {
+                throw RuntimeError("Can only add numbers and strings.");
+            }
             break;
             
         case OpCode::OP_SUBTRACT:
-            stack_.push_front(a - b);
+            if (a.index() == 2 && b.index() == 2) {
+                stack_.push_front(Value(std::get<double>(a) - std::get<double>(b)));
+            } else {
+                throw RuntimeError("Can only subtract numbers.");
+            }
             break;
             
         case OpCode::OP_MULTIPLY:
-            stack_.push_front(a * b);
+            if (a.index() == 2 && b.index() == 2) {
+                stack_.push_front(Value(std::get<double>(a) * std::get<double>(b)));
+            } else {
+                throw RuntimeError("Can only multiply numbers.");
+            }
             break;
             
         case OpCode::OP_DIVIDE:
-            stack_.push_front(a / b);
+            if (a.index() == 2 && b.index() == 2) {
+                stack_.push_front(Value(std::get<double>(a) / std::get<double>(b)));
+            } else {
+                throw RuntimeError("Can only divide numbers.");
+            }
             break;
             
         case OpCode::OP_GREATER:
@@ -180,19 +259,19 @@ void Vm::binary_op_(OpCode which_op) {
 bool Vm::is_falsey_(const Value& value) {
     auto value_type = value.index();
     
-    // Empty.
+    // Empty is false.
     if (value_type == 0) {
         return true;
     }
     
-    // boolean.
+    // boolean, which can obviously be false.
     if (value_type == 1) {
         if (std::get<bool>(value) == false) {
             return true;
         }
     }
     
-    // Anything else return true.
+    // This is not false, it is "some" value.
     return false;
 }
 

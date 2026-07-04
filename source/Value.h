@@ -19,6 +19,10 @@ struct Values {
         return constants.size()-1;
     }
     
+    const Value& get_value(int index) const {
+        return constants[index];
+    }
+    
     void clear() {
         constants.clear();
     }

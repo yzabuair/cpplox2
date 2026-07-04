@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "Compiler.h"
 #include "Debug.h"
+#include "RuntimeError.h"
 #include "Scanner.h"
 #include "Value.h"
 #include "Vm.h"
@@ -16,32 +17,16 @@
 
 
 namespace {
-struct RuntimeError: public std::exception {
-    std::string msg;
-    std::source_location location;
-    mutable std::string resolved;
-    
-    RuntimeError(const std::string& message,
-                 const std::source_location& curr_location = std::source_location::current()):
-        msg{message},
-        location{curr_location} {
-    }
-    
-    const char* what() const noexcept {
-        if (resolved.empty()) {
-            std::stringstream stream;
-            stream << "Error: " << msg << "\n";
-            stream << "At: [" << location.file_name() << ":" << location.line() << "]\n";
-            resolved = stream.str();
-        }
-        
-        return resolved.c_str();
-    }
-    
-    static void throw_exc(const std::string& what) {
-        throw RuntimeError(what);
-    }
+
+struct RuntimeOptions {
+    bool debug{false};
+    bool run_repl{false};
+    std::string script_file;
 };
+
+
+RuntimeOptions global_runtime_options = {};
+
 std::vector<std::string> parse_line(const std::string& inp_line) {
     std::vector<std::string> command_args;
     
@@ -62,6 +47,11 @@ void repl() {
         if (cmd_args[0] == "quit") {
             std::cout << "*** Bye\n";
             break;
+        } else if (cmd_args[0] == "help") {
+            std::cout << "help: This command.\n";
+            std::cout << "quit: Quits the program.\n";
+        } else {
+            std::cout << "Error: Unknown command\n";
         }
         std::cout << "===> ";
     }
@@ -72,7 +62,7 @@ std::string read_file(const std::string& file) {
     if (!file_stream.is_open()) {
         std::stringstream stream;
         stream << "Could not open file: " << file;
-        RuntimeError::throw_exc(stream.str());
+        cpplox2::RuntimeError{stream.str()};
     }
     
     std::string file_contents;
@@ -95,11 +85,8 @@ cpplox2::InterpretResult interpret(const std::string& script,
     
     cpplox2::Vm vm{chunk, true};
     
-    auto result =  vm.run();
-    if (result == cpplox2::InterpretResult::INTERPRET_OK) {
-        using cpplox2::operator<<;
-        std::cout << "result = " << vm.result() << "\n";
-    }
+    auto result = vm.run();
+
     return result;
 }
 
@@ -112,22 +99,43 @@ int run_file(const std::string& file) {
     return 0;
 }
 
+
+bool parse_command_line(int argc, char* argv[]) {
+    if (argc == 1) {
+        global_runtime_options.run_repl = true;
+    } else if (argc == 2) {
+        global_runtime_options.script_file = argv[1];
+    } else {
+        std::cout << "Usage: cpplox2 [file_path]\n";
+        return false;
+    }
+    
+    return true;
+}
+
+int execute() {
+    if (global_runtime_options.run_repl == true) {
+        repl();
+    } else if (!global_runtime_options.script_file.empty()) {
+        return run_file(global_runtime_options.script_file);
+    }
+    
+    return 0;
+}
+
+
 } // inline namespace
 
 int main(int argc, char* argv[]) {
     std::cout << "cpplox2, (c) 2026 Yasser Zabuair.  See LICENSE for details.\n";
     std::cout << "Version 0.0.1\n";
     std::cout << "Built on " << __DATE__ << " at " << __TIME__ << "\n";
-    std::cout << "---\n";
+    std::cout << "---\n\n";
     
     try {
-        if (argc == 1) {
-            repl();
-        } else if (argc == 2) {
-            return run_file(argv[1]);
-        } else {
-            std::cout << "Usage: cpplox2 [file_path]\n";
-            return 64;
+        bool keep_truckin = parse_command_line(argc, argv);
+        if (keep_truckin) {
+            return execute();
         }
     } catch (const std::exception& exc) {
         std::cout << exc.what() << "\n";

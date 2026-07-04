@@ -7,7 +7,7 @@
 
 namespace cpplox2 {
 
-enum class OpCode {
+enum class OpCode: uint8_t {
     OP_CONSTANT,
     OP_NIL,
     OP_TRUE,
@@ -21,9 +21,15 @@ enum class OpCode {
     OP_GREATER,
     OP_LESS,
     OP_NEGATE,
+    OP_PRINT,
+    OP_POP,
+    OP_DEFINE_GLOBAL,
+    OP_GET_GLOBAL,
+    OP_SET_GLOBAL,
     OP_RETURN,
 };
 
+/// Represents a chunk of code that the VM executes.
 struct Chunk {
     std::vector<uint8_t> data;
     std::vector<int> lines;

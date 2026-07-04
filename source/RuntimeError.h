@@ -8,6 +8,7 @@
 
 namespace cpplox2 {
 
+/// Details about an error we ran into at runtime.
 struct RuntimeError: public std::exception {
     mutable std::string msg;
     std::string details;
